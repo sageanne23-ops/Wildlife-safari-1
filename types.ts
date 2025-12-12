@@ -6,6 +6,11 @@ export interface TourPackage {
   image: string;
   description: string;
   highlights: string[];
+  // Extended Details
+  fullDescription?: string;
+  dailyItinerary?: { day: number; title: string; description: string }[];
+  inclusions?: string[];
+  exclusions?: string[];
 }
 
 export interface PlannerState {
@@ -28,9 +33,15 @@ export interface GeneratedItinerary {
 
 export interface Story {
   id: string;
+  title: string;
   author: string;
   role: string;
-  image: string;
-  content: string;
+  authorImage: string;
+  coverImage: string;
+  excerpt: string;
+  content: string[]; // Array of paragraphs
+  date: string;
   rating: number;
 }
+
+export type PageView = 'HOME' | 'DESTINATIONS' | 'TOUR_DETAILS' | 'GALLERY' | 'STORIES' | 'CONTACT' | 'ABOUT' | 'SUSTAINABILITY' | 'FAQ' | 'POLICY';

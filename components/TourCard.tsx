@@ -1,15 +1,16 @@
 import React from 'react';
-import { Clock, DollarSign, MapPin } from 'lucide-react';
+import { Clock, DollarSign, MapPin, ArrowRight } from 'lucide-react';
 import { TourPackage } from '../types';
 
 interface TourCardProps {
   tour: TourPackage;
+  onViewDetails?: (tour: TourPackage) => void;
 }
 
-const TourCard: React.FC<TourCardProps> = ({ tour }) => {
+const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails }) => {
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-stone-100">
-      <div className="relative h-64 overflow-hidden">
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-stone-100 flex flex-col h-full">
+      <div className="relative h-64 overflow-hidden shrink-0">
         <img 
           src={tour.image} 
           alt={tour.title} 
@@ -20,7 +21,7 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
         </div>
       </div>
       
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-2xl font-serif font-bold text-safari-900 mb-2">{tour.title}</h3>
         <p className="text-stone-600 mb-4 line-clamp-2 text-sm leading-relaxed">{tour.description}</p>
         
@@ -32,21 +33,30 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
           ))}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-stone-100">
-          <div className="flex flex-col">
-            <div className="flex items-center text-stone-500 text-sm mb-1">
-              <Clock size={14} className="mr-1" /> {tour.duration}
+        <div className="mt-auto pt-4 border-t border-stone-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col">
+              <div className="flex items-center text-stone-500 text-sm mb-1">
+                <Clock size={14} className="mr-1" /> {tour.duration}
+              </div>
+              <div className="flex items-center text-stone-500 text-sm">
+                <MapPin size={14} className="mr-1" /> Rwanda
+              </div>
             </div>
-            <div className="flex items-center text-stone-500 text-sm">
-              <MapPin size={14} className="mr-1" /> Rwanda
+            <div className="text-right">
+              <span className="block text-xs text-stone-400">From</span>
+              <span className="flex items-center text-xl font-bold text-safari-700">
+                <DollarSign size={18} />{tour.price}
+              </span>
             </div>
           </div>
-          <div className="text-right">
-            <span className="block text-xs text-stone-400">From</span>
-            <span className="flex items-center text-xl font-bold text-safari-700">
-              <DollarSign size={18} />{tour.price}
-            </span>
-          </div>
+          
+          <button 
+            onClick={() => onViewDetails && onViewDetails(tour)}
+            className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-safari-200"
+          >
+            View Details <ArrowRight size={18} />
+          </button>
         </div>
       </div>
     </div>

@@ -1,14 +1,28 @@
 import React from 'react';
 import { Compass, Facebook, Instagram, Twitter, Mail } from 'lucide-react';
+import { PageView } from '../types';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onNavigate: (page: PageView) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const handleLinkClick = (e: React.MouseEvent, page: PageView) => {
+    e.preventDefault();
+    onNavigate(page);
+    window.scrollTo(0, 0);
+  };
+
   return (
     <footer className="bg-safari-950 text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-2">
+            <div 
+              className="flex items-center space-x-2 cursor-pointer" 
+              onClick={(e) => handleLinkClick(e, 'HOME')}
+            >
               <Compass className="h-8 w-8 text-safari-400" />
               <span className="text-2xl font-serif font-bold tracking-wide text-white">
                 Wildlife<span className="text-safari-400">Safari</span>
@@ -28,10 +42,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-safari-100">Quick Links</h4>
             <ul className="space-y-4">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Our Packages</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Destinations</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Sustainability</a></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'ABOUT')} className="text-gray-400 hover:text-white transition-colors">About Us</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'DESTINATIONS')} className="text-gray-400 hover:text-white transition-colors">Our Packages</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'DESTINATIONS')} className="text-gray-400 hover:text-white transition-colors">Destinations</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'SUSTAINABILITY')} className="text-gray-400 hover:text-white transition-colors">Sustainability</button></li>
             </ul>
           </div>
 
@@ -39,10 +53,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-safari-100">Support</h4>
             <ul className="space-y-4">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQs</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Booking Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Travel Guide</a></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'CONTACT')} className="text-gray-400 hover:text-white transition-colors">Contact Us</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'FAQ')} className="text-gray-400 hover:text-white transition-colors">FAQs</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'POLICY')} className="text-gray-400 hover:text-white transition-colors">Booking Policy</button></li>
+              <li><button onClick={(e) => handleLinkClick(e, 'ABOUT')} className="text-gray-400 hover:text-white transition-colors">Travel Guide</button></li>
             </ul>
           </div>
 

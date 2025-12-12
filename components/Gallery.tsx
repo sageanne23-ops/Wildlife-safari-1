@@ -1,4 +1,5 @@
 import React from 'react';
+import PageHeader from './PageHeader';
 
 const Gallery: React.FC = () => {
   const images = [
@@ -31,20 +32,36 @@ const Gallery: React.FC = () => {
       url: "https://images.unsplash.com/photo-1518182170546-0766aa6f7126?q=80&w=2070&auto=format&fit=crop",
       title: "Canopy Walkway",
       desc: "Nyungwe Forest"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1626270726888-2d8540a83856?q=80&w=2070&auto=format&fit=crop",
+      title: "Golden Monkeys",
+      desc: "Volcanoes National Park"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1489396160835-7798832a5028?q=80&w=2069&auto=format&fit=crop",
+      title: "Savannah Sunset",
+      desc: "Akagera National Park"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1589136787383-2287413d964f?q=80&w=2070&auto=format&fit=crop",
+      title: "Kigali Convention",
+      desc: "Kigali City"
     }
   ];
 
   return (
-    <section id="gallery" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-sm font-bold tracking-widest text-safari-600 uppercase mb-2">Through the Lens</h2>
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-safari-900">Capturing the Beauty of Rwanda</h3>
-        </div>
+    <div className="bg-white min-h-screen">
+      <PageHeader 
+        title="Gallery" 
+        subtitle="A visual journey through the heart of Africa."
+        image="https://images.unsplash.com/photo-1517013892700-1c6e11894d80?q=80&w=2070&auto=format&fit=crop"
+      />
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((img, idx) => (
-            <div key={idx} className="group relative h-80 overflow-hidden rounded-2xl cursor-pointer">
+            <div key={idx} className="group relative h-80 overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all">
               <img 
                 src={img.url} 
                 alt={img.title} 
@@ -58,7 +75,7 @@ const Gallery: React.FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
