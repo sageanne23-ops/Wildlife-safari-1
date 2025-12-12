@@ -9,20 +9,30 @@ interface TourCardProps {
 
 const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails }) => {
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-stone-100 flex flex-col h-full">
+    <div 
+      className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-stone-100 flex flex-col h-full cursor-pointer" 
+      onClick={() => onViewDetails && onViewDetails(tour)}
+    >
       <div className="relative h-64 overflow-hidden shrink-0">
+        {/* Image with Zoom and Brightness Effect */}
         <img 
           src={tour.image} 
           alt={tour.title} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110 group-hover:brightness-105"
         />
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-safari-700 font-bold text-sm shadow-sm">
+        
+        {/* Subtle Dark Overlay on Hover for Depth */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 pointer-events-none"></div>
+
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-safari-700 font-bold text-sm shadow-sm z-10">
           Best Seller
         </div>
       </div>
       
       <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-2xl font-serif font-bold text-safari-900 mb-2">{tour.title}</h3>
+        <h3 className="text-2xl font-serif font-bold text-safari-900 mb-2 group-hover:text-safari-600 transition-colors duration-300">
+          {tour.title}
+        </h3>
         <p className="text-stone-600 mb-4 line-clamp-2 text-sm leading-relaxed">{tour.description}</p>
         
         <div className="flex flex-wrap gap-2 mb-6">
@@ -52,7 +62,10 @@ const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails }) => {
           </div>
           
           <button 
-            onClick={() => onViewDetails && onViewDetails(tour)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails && onViewDetails(tour);
+            }}
             className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-safari-200"
           >
             View Details <ArrowRight size={18} />

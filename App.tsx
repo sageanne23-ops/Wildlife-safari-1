@@ -139,7 +139,9 @@ function App() {
       case 'TOUR_DETAILS':
         return selectedTour ? (
           <TourDetails 
-            tour={selectedTour} 
+            tour={selectedTour}
+            tours={TOURS}
+            onViewDetails={handleViewDetails} 
             onOpenPlanner={() => setIsPlannerOpen(true)}
           />
         ) : <Home tours={TOURS} onNavigate={setCurrentPage} onOpenPlanner={() => setIsPlannerOpen(true)} onViewDetails={handleViewDetails} />;

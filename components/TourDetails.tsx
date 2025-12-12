@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { Clock, DollarSign, MapPin, Check, X, Calendar, User, Mail, MessageSquare, Info, ShieldCheck, Sparkles } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Clock, DollarSign, MapPin, Check, X, Calendar, User, Mail, MessageSquare, Info, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import { TourPackage } from '../types';
 import PageHeader from './PageHeader';
+import TourCard from './TourCard';
 
 interface TourDetailsProps {
   tour: TourPackage;
+  tours: TourPackage[];
+  onViewDetails: (tour: TourPackage) => void;
   onOpenPlanner: () => void;
 }
 
-const TourDetails: React.FC<TourDetailsProps> = ({ tour, onOpenPlanner }) => {
+const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, onOpenPlanner }) => {
   const [bookingStep, setBookingStep] = useState(1);
   
   // Default data if specific details aren't provided in the mock
@@ -21,6 +24,20 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, onOpenPlanner }) => {
   const inclusions = tour.inclusions || ['Professional English-speaking guide', 'All park fees and permits', 'Accommodation as per itinerary', '4x4 Safari Vehicle', 'Drinking water'];
   const exclusions = tour.exclusions || ['International Flights', 'Visa fees', 'Travel Insurance', 'Personal expenses', 'Tips/Gratuities'];
 
+  // Logic to find related tours based on overlapping highlights
+  const relatedTours = useMemo(() => {
+    return tours
+      .filter(t => t.id !== tour.id)
+      .map(t => {
+        // Calculate intersection of highlights
+        const overlap = t.highlights.filter(h => tour.highlights.includes(h)).length;
+        return { tour: t, score: overlap };
+      })
+      .sort((a, b) => b.score - a.score) // Sort by highest overlap
+      .slice(0, 3) // Take top 3
+      .map(item => item.tour);
+  }, [tour, tours]);
+
   return (
     <div className="bg-stone-50 min-h-screen pb-20">
       <PageHeader 
@@ -29,7 +46,7 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, onOpenPlanner }) => {
         image={tour.image}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Content - Left Column */}
@@ -210,6 +227,22 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, onOpenPlanner }) => {
 
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Related Tours Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 border-t border-stone-200">
+        <h2 className="text-3xl font-serif font-bold text-safari-900 mb-8 flex items-center gap-3">
+          You Might Also Like <ArrowRight className="text-safari-500" size={24} />
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {relatedTours.map(relatedTour => (
+            <TourCard 
+              key={relatedTour.id} 
+              tour={relatedTour} 
+              onViewDetails={onViewDetails} 
+            />
+          ))}
         </div>
       </div>
     </div>
