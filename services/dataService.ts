@@ -144,8 +144,30 @@ class DataService {
     return this.bookings;
   }
 
-  // USERS
+  // USERS CRUD
   getUsers() { return this.users; }
+
+  addUser(user: Partial<User>) {
+    const newUser: User = {
+      id: Date.now().toString(),
+      name: user.name || 'New User',
+      email: user.email || '',
+      role: user.role || 'user',
+      avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`
+    };
+    this.users = [newUser, ...this.users];
+    return this.users;
+  }
+  
+  deleteUser(id: string) {
+    this.users = this.users.filter(u => u.id !== id);
+    return this.users;
+  }
+
+  updateUserRole(id: string, role: 'admin' | 'user') {
+    this.users = this.users.map(u => u.id === id ? { ...u, role } : u);
+    return this.users;
+  }
   
   authenticate(email: string): User | null {
     // Simple mock auth

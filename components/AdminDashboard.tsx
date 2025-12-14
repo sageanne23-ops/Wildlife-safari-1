@@ -3,7 +3,7 @@ import { db } from '../services/dataService';
 import { TourPackage, Booking, Story, User } from '../types';
 import { 
   LayoutDashboard, Map, Users, CalendarCheck, BookOpen, 
-  Plus, Edit, Trash2, Check, X, Search, DollarSign, Clock 
+  Plus, Edit, Trash2, Check, X, Search, DollarSign, Clock, Shield, ShieldAlert, Mail, User as UserIcon
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -17,11 +17,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [tours, setTours] = useState<TourPackage[]>(db.getTours());
   const [bookings, setBookings] = useState<Booking[]>(db.getBookings());
   const [stories, setStories] = useState<Story[]>(db.getStories());
-  const [users] = useState<User[]>(db.getUsers());
+  const [users, setUsers] = useState<User[]>(db.getUsers());
 
   // Form State for Packages
   const [isEditing, setIsEditing] = useState(false);
   const [editingTour, setEditingTour] = useState<Partial<TourPackage>>({});
+
+  // Form State for Users
+  const [isUserEditing, setIsUserEditing] = useState(false);
+  const [editingUser, setEditingUser] = useState<Partial<User>>({ role: 'user' });
 
   // --- HANDLERS ---
 
@@ -65,6 +69,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   // Stories
   const handleStoryAction = (id: string, status: 'approved' | 'rejected') => {
     setStories(db.updateStoryStatus(id, status));
+  };
+
+  // Users
+  const handleDeleteUser = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this user? This cannot be undone.')) {
+      setUsers(db.deleteUser(id));
+    }
+  };
+
+  const handleToggleAdmin = (user: User) => {
+    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    if (window.confirm(`Are you sure you want to change ${user.name}'s role to ${newRole}?`)) {
+      setUsers(db.updateUserRole(user.id, newRole));
+    }
+  };
+
+  const handleSaveUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would also handle updates, but for now we just support Add
+    setUsers(db.addUser(editingUser));
+    setIsUserEditing(false);
+    setEditingUser({ role: 'user' });
   };
 
   // --- RENDER HELPERS ---
@@ -312,6 +338,119 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     </div>
   );
 
+  const renderUsers = () => (
+    <div className="space-y-6">
+       <div className="flex justify-between items-center">
+         <h2 className="text-2xl font-bold text-safari-900">Manage Users</h2>
+         <button 
+            onClick={() => { setEditingUser({ role: 'user' }); setIsUserEditing(true); }}
+            className="bg-safari-600 hover:bg-safari-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2"
+          >
+            <Plus size={18} /> Add User
+          </button>
+       </div>
+
+       {/* Add User Form */}
+       {isUserEditing && (
+         <div className="bg-white p-6 rounded-xl border border-stone-200 shadow-lg mb-6 animate-fade-in-up">
+           <h3 className="text-lg font-bold mb-4">Add New User</h3>
+           <form onSubmit={handleSaveUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="relative">
+               <UserIcon className="absolute left-3 top-3 text-stone-400" size={18} />
+               <input 
+                 placeholder="Full Name" 
+                 className="w-full pl-10 pr-4 py-2 border rounded"
+                 value={editingUser.name || ''} 
+                 onChange={e => setEditingUser({...editingUser, name: e.target.value})} 
+                 required
+               />
+             </div>
+             <div className="relative">
+               <Mail className="absolute left-3 top-3 text-stone-400" size={18} />
+               <input 
+                 placeholder="Email Address" 
+                 type="email"
+                 className="w-full pl-10 pr-4 py-2 border rounded"
+                 value={editingUser.email || ''} 
+                 onChange={e => setEditingUser({...editingUser, email: e.target.value})} 
+                 required
+               />
+             </div>
+             <div className="relative">
+               <Shield className="absolute left-3 top-3 text-stone-400" size={18} />
+               <select 
+                 className="w-full pl-10 pr-4 py-2 border rounded bg-white"
+                 value={editingUser.role || 'user'}
+                 onChange={e => setEditingUser({...editingUser, role: e.target.value as 'admin' | 'user'})}
+               >
+                 <option value="user">User</option>
+                 <option value="admin">Admin</option>
+               </select>
+             </div>
+             
+             <div className="flex justify-end gap-2 items-center">
+               <button type="button" onClick={() => setIsUserEditing(false)} className="px-4 py-2 text-stone-500">Cancel</button>
+               <button type="submit" className="bg-safari-600 text-white px-6 py-2 rounded font-bold">Create User</button>
+             </div>
+           </form>
+         </div>
+       )}
+
+       <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+         <table className="w-full text-left">
+            <thead className="bg-stone-50 border-b border-stone-200">
+               <tr>
+                  <th className="p-4 text-sm font-bold text-stone-600">Name</th>
+                  <th className="p-4 text-sm font-bold text-stone-600">Email</th>
+                  <th className="p-4 text-sm font-bold text-stone-600">Role</th>
+                  <th className="p-4 text-sm font-bold text-stone-600 text-right">Actions</th>
+               </tr>
+            </thead>
+            <tbody>
+               {users.map(user => (
+                  <tr key={user.id} className="border-b border-stone-100 hover:bg-stone-50">
+                     <td className="p-4 text-sm font-bold text-safari-900 flex items-center gap-2">
+                       <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-xs text-stone-600 overflow-hidden">
+                         {user.avatar && !user.avatar.includes('ui-avatars') ? (
+                           <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                         ) : (
+                           user.name.charAt(0)
+                         )}
+                       </div>
+                       {user.name}
+                     </td>
+                     <td className="p-4 text-sm text-stone-600">{user.email}</td>
+                     <td className="p-4">
+                       <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                         user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                       }`}>
+                         {user.role}
+                       </span>
+                     </td>
+                     <td className="p-4 text-right flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleToggleAdmin(user)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                          title={user.role === 'admin' ? "Demote to User" : "Promote to Admin"}
+                        >
+                          {user.role === 'admin' ? <ShieldAlert size={16} /> : <Shield size={16} />}
+                        </button>
+                        <button 
+                           onClick={() => handleDeleteUser(user.id)}
+                           className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                           title="Remove User"
+                        >
+                           <Trash2 size={16} />
+                        </button>
+                     </td>
+                  </tr>
+               ))}
+            </tbody>
+         </table>
+       </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-stone-50 flex">
       {/* Sidebar */}
@@ -351,14 +490,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
           {activeTab === 'packages' && renderPackages()}
           {activeTab === 'bookings' && renderBookings()}
           {activeTab === 'stories' && renderStories()}
-          {activeTab === 'users' && (
-             <div>
-                <h2 className="text-2xl font-bold text-safari-900 mb-6">User Management</h2>
-                <div className="bg-white p-6 rounded-xl border border-stone-200">
-                   <p>User management interface goes here...</p>
-                </div>
-             </div>
-          )}
+          {activeTab === 'users' && renderUsers()}
         </div>
       </main>
     </div>
