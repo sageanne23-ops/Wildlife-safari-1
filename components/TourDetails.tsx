@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Clock, DollarSign, MapPin, Check, X, Calendar, User, Mail, MessageSquare, Info, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
+import { Clock, DollarSign, MapPin, Check, X, Calendar, User, Mail, MessageSquare, Info, ShieldCheck, Sparkles, ArrowRight, MessageCircle } from 'lucide-react';
 import { TourPackage } from '../types';
 import PageHeader from './PageHeader';
 import TourCard from './TourCard';
@@ -13,6 +13,7 @@ interface TourDetailsProps {
 
 const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, onOpenPlanner }) => {
   const [bookingStep, setBookingStep] = useState(1);
+  const [userEmail, setUserEmail] = useState('');
   
   // Default data if specific details aren't provided in the mock
   const fullDesc = tour.fullDescription || tour.description;
@@ -37,6 +38,12 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
       .slice(0, 3) // Take top 3
       .map(item => item.tour);
   }, [tour, tours]);
+
+  const handleWhatsAppClick = () => {
+    const phoneNumber = "250788123456"; // Replace with actual business number
+    const message = encodeURIComponent(`Hello! I am interested in the "${tour.title}" package. Can you provide more details?`);
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+  };
 
   return (
     <div className="bg-stone-50 min-h-screen pb-20">
@@ -143,8 +150,27 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
           {/* Booking Sidebar - Right Column */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-xl border border-safari-100 p-6 sticky top-24">
+              
+              {/* WhatsApp Helper */}
+              <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-100">
+                <h4 className="font-bold text-green-800 text-sm mb-2 flex items-center gap-2">
+                  <MessageCircle size={16} /> Have questions first?
+                </h4>
+                <p className="text-xs text-green-700 mb-3">
+                  Not ready to book? Chat with an expert instantly to get full clarity on this package.
+                </p>
+                <button 
+                  onClick={handleWhatsAppClick}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <MessageCircle size={18} /> Chat on WhatsApp
+                </button>
+              </div>
+
+              <div className="h-px bg-stone-100 mb-6"></div>
+
               <h3 className="text-2xl font-serif font-bold text-safari-900 mb-2">Book This Trip</h3>
-              <p className="text-stone-500 text-sm mb-6">Fill out the form below to request a booking or customize this itinerary.</p>
+              <p className="text-stone-500 text-sm mb-6">Fill out the form below. We will send details to your email and dashboard.</p>
 
               {bookingStep === 1 ? (
                 <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setBookingStep(2); }}>
@@ -160,7 +186,13 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
                     <label className="text-xs font-bold text-stone-500 uppercase">Email Address</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 text-stone-400" size={18} />
-                      <input required type="email" className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-safari-500 outline-none" placeholder="name@example.com" />
+                      <input 
+                        required 
+                        type="email" 
+                        className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-safari-500 outline-none" 
+                        placeholder="name@example.com"
+                        onChange={(e) => setUserEmail(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -188,7 +220,7 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
                       Submit Booking Request
                     </button>
                     <p className="text-xs text-center text-stone-400 mt-3 flex items-center justify-center gap-1">
-                      <ShieldCheck size={12} /> No payment required yet.
+                      <ShieldCheck size={12} /> Secure. No payment required yet.
                     </p>
                   </div>
                 </form>
@@ -198,10 +230,27 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
                     <Check size={32} />
                   </div>
                   <h4 className="text-xl font-bold text-stone-800 mb-2">Request Received!</h4>
-                  <p className="text-stone-600 mb-6">
-                    Thank you for your interest in the <strong>{tour.title}</strong>. Our team will check availability and email you within 24 hours with a formal quote.
+                  <p className="text-stone-600 mb-6 text-sm">
+                    Thank you for your interest in the <strong>{tour.title}</strong>. 
                   </p>
-                  <button onClick={() => setBookingStep(1)} className="text-safari-600 font-bold hover:underline">
+                  <div className="bg-stone-50 p-4 rounded-lg text-left mb-6 border border-stone-200">
+                    <p className="text-xs text-stone-500 font-bold uppercase mb-1">What happens next?</p>
+                    <ul className="text-sm text-stone-600 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <Mail size={14} className="mt-0.5 text-safari-500"/> 
+                        <span>A confirmation has been sent to <strong>{userEmail || 'your email'}</strong>.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <User size={14} className="mt-0.5 text-safari-500"/> 
+                        <span>If you have an account, this request is now visible in your <strong>Dashboard</strong>.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Clock size={14} className="mt-0.5 text-safari-500"/> 
+                        <span>Our team will reply with a quote within 24 hours.</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <button onClick={() => setBookingStep(1)} className="text-safari-600 font-bold hover:underline text-sm">
                     Send another request
                   </button>
                 </div>
@@ -241,6 +290,7 @@ const TourDetails: React.FC<TourDetailsProps> = ({ tour, tours, onViewDetails, o
               key={relatedTour.id} 
               tour={relatedTour} 
               onViewDetails={onViewDetails} 
+              onQuickBook={onViewDetails}
             />
           ))}
         </div>

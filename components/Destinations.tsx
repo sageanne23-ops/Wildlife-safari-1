@@ -163,7 +163,12 @@ const Destinations: React.FC<DestinationsProps> = ({ tours, onViewDetails }) => 
         {filteredTours.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
             {filteredTours.map(tour => (
-              <TourCard key={tour.id} tour={tour} onViewDetails={onViewDetails} />
+              <TourCard 
+                key={tour.id} 
+                tour={tour} 
+                onViewDetails={onViewDetails} 
+                onQuickBook={onViewDetails}
+              />
             ))}
           </div>
         ) : (

@@ -77,7 +77,12 @@ const Home: React.FC<HomeProps> = ({ tours, onNavigate, onOpenPlanner, onViewDet
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tours.slice(0, 3).map(tour => (
-              <TourCard key={tour.id} tour={tour} onViewDetails={onViewDetails} />
+              <TourCard 
+                key={tour.id} 
+                tour={tour} 
+                onViewDetails={onViewDetails} 
+                onQuickBook={onViewDetails}
+              />
             ))}
           </div>
         </div>

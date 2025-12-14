@@ -1,13 +1,14 @@
 import React from 'react';
-import { Clock, DollarSign, MapPin, ArrowRight } from 'lucide-react';
+import { Clock, DollarSign, MapPin, Zap } from 'lucide-react';
 import { TourPackage } from '../types';
 
 interface TourCardProps {
   tour: TourPackage;
   onViewDetails?: (tour: TourPackage) => void;
+  onQuickBook?: (tour: TourPackage) => void;
 }
 
-const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails }) => {
+const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails, onQuickBook }) => {
   return (
     <div 
       className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-stone-100 flex flex-col h-full cursor-pointer" 
@@ -61,15 +62,30 @@ const TourCard: React.FC<TourCardProps> = ({ tour, onViewDetails }) => {
             </div>
           </div>
           
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails && onViewDetails(tour);
-            }}
-            className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-safari-200"
-          >
-            View Details <ArrowRight size={18} />
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails && onViewDetails(tour);
+              }}
+              className="flex-1 bg-stone-50 hover:bg-stone-100 text-stone-600 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm border border-stone-200"
+            >
+              Explore
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onQuickBook) {
+                    onQuickBook(tour);
+                } else if (onViewDetails) {
+                    onViewDetails(tour);
+                }
+              }}
+              className="flex-1 bg-safari-600 hover:bg-safari-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm group-hover:shadow-safari-200"
+            >
+              Quick Book <Zap size={16} className="fill-white" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

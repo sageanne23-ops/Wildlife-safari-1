@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { PageView } from '../types';
 
 interface FooterProps {
@@ -13,6 +13,11 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     e.preventDefault();
     onNavigate(page);
     window.scrollTo(0, 0);
+  };
+
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.open('https://wa.me/250788123456', '_blank');
   };
 
   return (
@@ -46,6 +51,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-safari-600 transition-all"><Instagram size={18} /></a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-safari-600 transition-all"><Facebook size={18} /></a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-safari-600 transition-all"><Twitter size={18} /></a>
+              <a href="#" onClick={handleWhatsAppClick} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-green-600 transition-all"><MessageCircle size={18} /></a>
             </div>
           </div>
 

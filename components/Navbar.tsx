@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, User as UserIcon, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { PageView } from '../types';
 
 interface NavbarProps {
@@ -7,7 +7,7 @@ interface NavbarProps {
   onNavigate: (page: PageView) => void;
   onOpenPlanner: () => void;
   onOpenAuth: () => void;
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; role?: 'admin' | 'user' } | null;
   onLogout: () => void;
 }
 
@@ -113,11 +113,25 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenPlanner,
 
               {/* Dropdown */}
               {isProfileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-stone-100 py-1 overflow-hidden animate-fade-in-up">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-stone-100 py-1 overflow-hidden animate-fade-in-up">
                    <div className="px-4 py-3 border-b border-stone-100">
                      <p className="text-xs text-stone-500">Signed in as</p>
                      <p className="text-sm font-bold text-safari-900 truncate">{user.email}</p>
+                     {user.role === 'admin' && <span className="text-[10px] font-bold text-white bg-safari-600 px-1.5 py-0.5 rounded uppercase mt-1 inline-block">Admin</span>}
                    </div>
+                   
+                   {user.role === 'admin' && (
+                     <>
+                        <button 
+                          onClick={() => { setIsProfileMenuOpen(false); handleNavClick('ADMIN'); }}
+                          className="w-full text-left px-4 py-3 text-sm font-bold text-safari-700 bg-safari-50 hover:bg-safari-100 transition-colors flex items-center gap-2"
+                        >
+                          <LayoutDashboard size={16} /> Admin Dashboard
+                        </button>
+                        <div className="border-t border-stone-100 my-1"></div>
+                     </>
+                   )}
+
                    <button className="w-full text-left px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 hover:text-safari-600 transition-colors">
                      My Bookings
                    </button>
@@ -163,14 +177,24 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenPlanner,
           
           {/* User Section Mobile */}
           {user ? (
-             <div className="bg-safari-800/50 rounded-xl p-4 flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-full bg-safari-700 border-2 border-safari-500 flex items-center justify-center text-xl text-white font-bold">
-                  {user.name.charAt(0)}
+             <div className="bg-safari-800/50 rounded-xl p-4 mb-2">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-safari-700 border-2 border-safari-500 flex items-center justify-center text-xl text-white font-bold">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-white font-bold">{user.name}</p>
+                    <p className="text-safari-300 text-xs">{user.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-white font-bold">{user.name}</p>
-                  <p className="text-safari-300 text-xs">{user.email}</p>
-                </div>
+                {user.role === 'admin' && (
+                  <button 
+                    onClick={() => { setIsMobileMenuOpen(false); handleNavClick('ADMIN'); }}
+                    className="mt-3 w-full bg-safari-600 text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    <LayoutDashboard size={16} /> Dashboard
+                  </button>
+                )}
              </div>
           ) : (
             <button 

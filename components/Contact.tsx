@@ -1,8 +1,12 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageCircle } from 'lucide-react';
 import PageHeader from './PageHeader';
 
 const Contact: React.FC = () => {
+  const handleWhatsAppClick = () => {
+    window.open(`https://wa.me/250788123456?text=${encodeURIComponent("Hello! I'm interested in booking a trip with Wildlife Safaris.")}`, '_blank');
+  };
+
   return (
     <div className="bg-white min-h-screen">
       <PageHeader 
@@ -55,6 +59,15 @@ const Contact: React.FC = () => {
                   <p className="text-stone-500 text-sm">Kigali, Rwanda</p>
                 </div>
               </div>
+              
+              <div className="pt-6">
+                 <button 
+                  onClick={handleWhatsAppClick}
+                  className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2"
+                >
+                  <MessageCircle size={20} /> Chat with us on WhatsApp
+                </button>
+              </div>
             </div>
           </div>
 
@@ -86,6 +99,10 @@ const Contact: React.FC = () => {
               <button type="button" className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-safari-500/30 flex items-center justify-center gap-2">
                 Send Message <Send size={18} />
               </button>
+              
+              <p className="text-xs text-center text-stone-400 mt-2">
+                We'll respond to your email and update your dashboard if you have an account.
+              </p>
             </form>
           </div>
 

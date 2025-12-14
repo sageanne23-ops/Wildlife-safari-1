@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  avatar?: string;
+}
+
 export interface TourPackage {
   id: string;
   title: string;
@@ -11,6 +19,19 @@ export interface TourPackage {
   dailyItinerary?: { day: number; title: string; description: string }[];
   inclusions?: string[];
   exclusions?: string[];
+}
+
+export interface Booking {
+  id: string;
+  tourId: string;
+  tourTitle: string;
+  userId: string; // email or id
+  userName: string;
+  date: string;
+  travelers: number;
+  status: 'pending' | 'confirmed' | 'rejected';
+  totalPrice?: string;
+  createdAt: string;
 }
 
 export interface PlannerState {
@@ -39,9 +60,10 @@ export interface Story {
   authorImage: string;
   coverImage: string;
   excerpt: string;
-  content: string[]; // Array of paragraphs
+  content: string[]; 
   date: string;
   rating: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
-export type PageView = 'HOME' | 'DESTINATIONS' | 'TOUR_DETAILS' | 'GALLERY' | 'STORIES' | 'CONTACT' | 'ABOUT' | 'SUSTAINABILITY' | 'FAQ' | 'POLICY';
+export type PageView = 'HOME' | 'DESTINATIONS' | 'TOUR_DETAILS' | 'GALLERY' | 'STORIES' | 'CONTACT' | 'ABOUT' | 'SUSTAINABILITY' | 'FAQ' | 'POLICY' | 'ADMIN';

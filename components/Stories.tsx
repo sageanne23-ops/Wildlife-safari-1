@@ -14,6 +14,7 @@ const INITIAL_STORIES: Story[] = [
     excerpt: "The hike was challenging, the mud was deep, but the moment I looked into the eyes of a massive Silverback, time stood still.",
     date: 'October 15, 2023',
     rating: 5,
+    status: 'approved',
     content: [
       "I had dreamed of this moment for years. Rwanda, the land of a thousand hills, was everything I imagined and more. Our journey began in Musanze, the gateway to Volcanoes National Park. The morning air was crisp and filled with anticipation as we gathered at the park headquarters for our briefing.",
       "Our guide, Francois, was incredible. He explained the etiquette of being around the gorillas—keep your distance, no flash photography, and submissive gestures if the silverback approaches. We were assigned the 'Susa' family, one of the largest groups in the park.",
@@ -33,6 +34,7 @@ const INITIAL_STORIES: Story[] = [
     excerpt: "Kigali is often just a stopover, but I found a city pulsing with art, history, and some of the best coffee I've ever tasted.",
     date: 'November 02, 2023',
     rating: 5,
+    status: 'approved',
     content: [
       "Most people come to Rwanda for the wildlife, but Kigali stole my heart. It is incredibly clean, safe, and modern, yet it retains a deep sense of tradition. My tour started at the Kigali Genocide Memorial. It is a heavy, emotional experience, but essential to understanding the resilience of the Rwandan people.",
       "After the memorial, we explored the Nyamirambo neighborhood. This is the oldest part of Kigali and it feels alive. We took a walking tour, visiting a women's center that empowers local seamstresses. The colors, the fabrics, the smiles—it was a photographer's paradise.",
@@ -51,6 +53,7 @@ const INITIAL_STORIES: Story[] = [
     excerpt: "Taking kids on safari can be daunting, but Akagera National Park was the perfect playground for our family adventure.",
     date: 'December 10, 2023',
     rating: 5,
+    status: 'approved',
     content: [
       "We wanted a safari experience that was accessible and safe for our two children, aged 8 and 10. Akagera National Park exceeded our expectations. Located in the east of Rwanda, it offers a classic savannah landscape that contrasts beautifully with the hills of the west.",
       "We opted for a tented camp experience. Sleeping under the stars, listening to the distant roar of lions and the laughter of hyenas, was a thrill for the kids. The guides were fantastic with the children, turning every game drive into a biology lesson.",
@@ -69,6 +72,7 @@ const INITIAL_STORIES: Story[] = [
     excerpt: "Four days of hiking along the shores of Lake Kivu revealed the quiet, rural beauty of Rwanda's countryside.",
     date: 'January 05, 2024',
     rating: 5,
+    status: 'approved',
     content: [
       "I sought solitude and physical challenge, and the Congo Nile Trail delivered. This trail runs along the watershed of the Congo and Nile rivers, offering stunning views of Lake Kivu at every turn.",
       "I hiked for four days, passing through endless tea plantations, banana groves, and small fishing villages. The terrain is hilly—this is Rwanda after all—but the views are worth every drop of sweat. The locals were incredibly welcoming. 'Mwaramutse!' (Good morning!) was the soundtrack of my hike.",
@@ -119,7 +123,8 @@ const Stories: React.FC = () => {
       excerpt: formData.content.substring(0, 120) + '...',
       content: formData.content.split('\n').filter(p => p.trim() !== ''), // Split paragraphs by newline
       date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      rating: formData.rating
+      rating: formData.rating,
+      status: 'pending'
     };
 
     // Add to state (prepend to top)
