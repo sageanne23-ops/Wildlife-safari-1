@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Star, Calendar, User, ArrowLeft, ArrowRight, Clock } from 'lucide-react';
+import { Star, Calendar, User, ArrowLeft, ArrowRight, Clock, PenTool, X, Send, Heart } from 'lucide-react';
 import { Story } from '../types';
 import PageHeader from './PageHeader';
 
-const STORIES: Story[] = [
+const INITIAL_STORIES: Story[] = [
   {
     id: '1',
     title: "Face to Face with the Silverbacks: My Gorilla Trekking Experience",
@@ -80,7 +80,58 @@ const STORIES: Story[] = [
 ];
 
 const Stories: React.FC = () => {
+  const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    title: '',
+    content: '',
+    rating: 5
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setFormData(prev => ({ ...prev, rating }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Create new story object
+    const newStory: Story = {
+      id: Date.now().toString(),
+      title: formData.title,
+      author: formData.name,
+      role: formData.role || 'Happy Traveler',
+      authorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=34ae6f&color=fff`, // Generate avatar
+      coverImage: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?q=80&w=2071&auto=format&fit=crop', // Default nice placeholder
+      excerpt: formData.content.substring(0, 120) + '...',
+      content: formData.content.split('\n').filter(p => p.trim() !== ''), // Split paragraphs by newline
+      date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      rating: formData.rating
+    };
+
+    // Add to state (prepend to top)
+    setStories([newStory, ...stories]);
+    
+    // Reset and close
+    setIsFormOpen(false);
+    setFormData({ name: '', role: '', title: '', content: '', rating: 5 });
+    
+    // Scroll to top to see it
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="bg-stone-50 min-h-screen">
@@ -93,11 +144,32 @@ const Stories: React.FC = () => {
           />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            
+            {/* Share Your Story CTA */}
+            <div className="bg-white rounded-2xl p-8 mb-16 shadow-lg border border-safari-100 flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in-up">
+              <div className="flex-1">
+                <h3 className="text-2xl font-serif font-bold text-safari-900 mb-2 flex items-center gap-2">
+                   <Heart className="text-red-500 fill-red-500" size={24} /> Share Your Experience
+                </h3>
+                <p className="text-stone-600">
+                  Did you travel with us recently? We'd love to hear about your adventure! 
+                  Your story could inspire the next traveler to discover the beauty of Rwanda.
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsFormOpen(true)}
+                className="bg-safari-600 hover:bg-safari-700 text-white px-8 py-4 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 shrink-0"
+              >
+                <PenTool size={20} /> Write a Story
+              </button>
+            </div>
+
+            {/* Stories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {STORIES.map((story) => (
+              {stories.map((story) => (
                 <div 
                   key={story.id} 
-                  className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col h-full border border-stone-100"
+                  className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col h-full border border-stone-100 animate-fade-in-up"
                   onClick={() => {
                     setSelectedStory(story);
                     window.scrollTo(0,0);
@@ -118,6 +190,17 @@ const Stories: React.FC = () => {
                     <h3 className="text-2xl font-serif font-bold text-safari-900 mb-4 group-hover:text-safari-600 transition-colors">
                       {story.title}
                     </h3>
+                    
+                    <div className="flex items-center gap-1 mb-3">
+                       {[...Array(5)].map((_, i) => (
+                         <Star 
+                           key={i} 
+                           size={14} 
+                           className={i < story.rating ? "text-yellow-400 fill-yellow-400" : "text-stone-300"} 
+                         />
+                       ))}
+                    </div>
+
                     <p className="text-stone-600 mb-6 line-clamp-3 leading-relaxed">
                       {story.excerpt}
                     </p>
@@ -143,6 +226,106 @@ const Stories: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {/* Submission Modal */}
+          {isFormOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsFormOpen(false)}></div>
+              
+              <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in-up">
+                <div className="bg-safari-900 p-6 flex justify-between items-center text-white shrink-0">
+                  <h3 className="text-2xl font-serif font-bold flex items-center gap-2">
+                    <PenTool size={24} /> Share Your Story
+                  </h3>
+                  <button onClick={() => setIsFormOpen(false)} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+                
+                <div className="p-8 overflow-y-auto bg-stone-50">
+                   <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                           <label className="text-sm font-bold text-stone-700">Your Name</label>
+                           <div className="relative">
+                             <User className="absolute left-3 top-3 text-stone-400" size={18} />
+                             <input 
+                                required
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none" 
+                                placeholder="e.g. Jane Doe"
+                             />
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-sm font-bold text-stone-700">Role / Location</label>
+                           <input 
+                                required
+                                name="role"
+                                value={formData.role}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none" 
+                                placeholder="e.g. Solo Traveler, UK"
+                             />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-sm font-bold text-stone-700">Story Title</label>
+                         <input 
+                              required
+                              name="title"
+                              value={formData.title}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none" 
+                              placeholder="Give your experience a catchy title"
+                           />
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-sm font-bold text-stone-700">Your Experience</label>
+                         <textarea 
+                            required
+                            name="content"
+                            value={formData.content}
+                            onChange={handleInputChange}
+                            rows={6}
+                            className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none resize-none" 
+                            placeholder="Tell us about your trip... What was the highlight? How did the guides treat you?"
+                         ></textarea>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-stone-700 block">Rate your experience</label>
+                        <div className="flex gap-2">
+                           {[1, 2, 3, 4, 5].map((star) => (
+                             <button 
+                               type="button"
+                               key={star}
+                               onClick={() => handleRatingChange(star)}
+                               className="p-1 transition-transform hover:scale-110"
+                             >
+                               <Star 
+                                 size={32} 
+                                 className={star <= formData.rating ? "text-yellow-400 fill-yellow-400" : "text-stone-300 fill-stone-100"} 
+                               />
+                             </button>
+                           ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-stone-200">
+                        <button type="submit" className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                           Submit Story <Send size={20} />
+                        </button>
+                      </div>
+                   </form>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         // Full Story Reading View

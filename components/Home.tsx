@@ -12,9 +12,16 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ tours, onNavigate, onOpenPlanner, onViewDetails }) => {
+  // Select top 5 tours for the hero slider
+  const featuredTours = tours.slice(0, 5);
+
   return (
     <>
-      <Hero onCtaClick={onOpenPlanner} />
+      <Hero 
+        onCtaClick={onOpenPlanner} 
+        featuredTours={featuredTours}
+        onViewDetails={onViewDetails}
+      />
 
       {/* Why Choose Us Section */}
       <section className="py-20 bg-white">

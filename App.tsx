@@ -11,6 +11,7 @@ import FAQ from './components/FAQ';
 import BookingPolicy from './components/BookingPolicy';
 import AIPlanner from './components/AIPlanner';
 import TourDetails from './components/TourDetails';
+import AuthModal from './components/AuthModal';
 import Footer from './components/Footer';
 import { TourPackage, PageView } from './types';
 
@@ -114,13 +115,25 @@ const TOURS: TourPackage[] = [
 
 function App() {
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<PageView>('HOME');
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
+  
+  // Auth State (Mock)
+  const [user, setUser] = useState<{name: string, email: string} | null>(null);
 
   const handleViewDetails = (tour: TourPackage) => {
     setSelectedTour(tour);
     setCurrentPage('TOUR_DETAILS');
     window.scrollTo(0, 0);
+  };
+
+  const handleLogin = (userData: {name: string, email: string}) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
   };
 
   const renderPage = () => {
@@ -177,6 +190,9 @@ function App() {
         currentPage={currentPage}
         onNavigate={setCurrentPage} 
         onOpenPlanner={() => setIsPlannerOpen(true)} 
+        onOpenAuth={() => setIsAuthOpen(true)}
+        user={user}
+        onLogout={handleLogout}
       />
       
       <main>
@@ -187,6 +203,9 @@ function App() {
       
       {/* AI Planner Modal - Always available */}
       <AIPlanner isOpen={isPlannerOpen} onClose={() => setIsPlannerOpen(false)} />
+      
+      {/* Authentication Modal */}
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onLogin={handleLogin} />
     </div>
   );
 }
