@@ -1,6 +1,10 @@
-import { TourPackage, Story, Booking, User } from '../types';
+import { TourPackage, Story, Booking, User, Destination } from '../types';
 
-// --- MOCK DATA INITIALIZATION ---
+const INITIAL_DESTINATIONS: Destination[] = [
+  { id: 'd1', name: 'Volcanoes National Park', image: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d', description: 'Home of the Mountain Gorillas.', packageCount: 1 },
+  { id: 'd2', name: 'Akagera National Park', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801', description: 'Savannah and the Big Five.', packageCount: 1 },
+  { id: 'd3', name: 'Nyungwe Forest', image: 'https://images.unsplash.com/photo-1440557653066-54157b856dc6', description: 'Ancient rainforest and primates.', packageCount: 1 }
+];
 
 const INITIAL_TOURS: TourPackage[] = [
   {
@@ -9,35 +13,23 @@ const INITIAL_TOURS: TourPackage[] = [
     duration: '3 Days',
     price: '$1,500',
     image: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d?q=80&w=2070&auto=format&fit=crop',
-    description: 'A once-in-a-lifetime encounter with the majestic mountain gorillas in their natural habitat.',
-    fullDescription: 'Experience the thrill of a lifetime as you trek into the dense rainforests of Volcanoes National Park to observe the endangered mountain gorillas in their natural habitat.',
-    highlights: ['Gorilla Trekking', 'Golden Monkeys', 'Cultural Visit'],
-    dailyItinerary: [
-      { day: 1, title: 'Arrival & Transfer', description: 'Arrive at Kigali International Airport. Transfer to Musanze.' },
-      { day: 2, title: 'Gorilla Trekking', description: 'Early morning briefing and trek into the forest.' },
-      { day: 3, title: 'Departure', description: 'Transfer back to Kigali.' }
+    gallery: [
+      'https://images.unsplash.com/photo-1628198758826-6136d837699d',
+      'https://images.unsplash.com/photo-1626270726888-2d8540a83856'
     ],
-    inclusions: ['Permits', 'Lodging'],
-    exclusions: ['Flights']
+    description: 'A once-in-a-lifetime encounter with the majestic mountain gorillas.',
+    fullDescription: 'Experience the thrill of a lifetime as you trek into the dense rainforests.',
+    highlights: ['Gorilla Trekking', 'Golden Monkeys', 'Cultural Visit'],
+    destinationId: 'd1',
+    dailyItinerary: [
+      { day: 1, title: 'Arrival in Kigali', description: 'Transfer to Musanze and check-in at your lodge.' },
+      { day: 2, title: 'Gorilla Trekking Day', description: 'Early morning briefing followed by a guided trek to find the gorillas.' },
+      { day: 3, title: 'Cultural Experience', description: 'Visit a local village before transferring back to Kigali.' }
+    ],
+    inclusions: ['Gorilla Permit', 'Private Vehicle', 'Expert Guide'],
+    exclusions: ['International Flights', 'Tips']
   },
-  {
-    id: '2',
-    title: 'Akagera Wildlife Safari',
-    duration: '2 Days',
-    price: '$800',
-    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2068&auto=format&fit=crop',
-    description: 'Explore the savannah plains of Akagera National Park and spot the Big 5.',
-    highlights: ['Game Drives', 'Boat Cruise', 'Big 5 Spotting'],
-  },
-  {
-    id: '3',
-    title: 'Nyungwe Canopy Walk',
-    duration: '4 Days',
-    price: '$1,200',
-    image: 'https://images.unsplash.com/photo-1440557653066-54157b856dc6?q=80&w=1974&auto=format&fit=crop',
-    description: 'Walk above the ancient rainforest and track chimpanzees in Nyungwe.',
-    highlights: ['Canopy Walk', 'Chimpanzee Trek', 'Waterfall Hike']
-  }
+  // ... more tours
 ];
 
 const INITIAL_STORIES: Story[] = [
@@ -47,25 +39,12 @@ const INITIAL_STORIES: Story[] = [
     author: 'Sarah Jenkins',
     role: 'Adventure Traveler',
     authorImage: 'https://ui-avatars.com/api/?name=Sarah+Jenkins&background=random',
-    coverImage: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d?q=80&w=2070&auto=format&fit=crop',
-    excerpt: "The hike was challenging, but the moment I looked into the eyes of a Silverback, time stood still.",
-    date: 'October 15, 2023',
+    coverImage: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d',
+    excerpt: "The moment I looked into the eyes of a Silverback, time stood still.",
+    date: 'Oct 15, 2023',
     rating: 5,
     status: 'approved',
     content: ["I had dreamed of this moment for years..."]
-  },
-  {
-    id: '2',
-    title: "Hidden Gems of Kigali",
-    author: 'Mark Doe',
-    role: 'Food Blogger',
-    authorImage: 'https://ui-avatars.com/api/?name=Mark+Doe&background=random',
-    coverImage: 'https://images.unsplash.com/photo-1544258788-b7f73c4f74d0?q=80&w=2070&auto=format&fit=crop',
-    excerpt: "Kigali is more than just a stopover.",
-    date: 'January 20, 2024',
-    rating: 4,
-    status: 'pending',
-    content: ["The coffee shops here are amazing..."]
   }
 ];
 
@@ -89,64 +68,41 @@ const INITIAL_USERS: User[] = [
   { id: '2', name: 'John Traveler', email: 'john@example.com', role: 'user' }
 ];
 
-// --- SERVICE CLASS ---
-
 class DataService {
   private tours: TourPackage[] = INITIAL_TOURS;
+  private destinations: Destination[] = INITIAL_DESTINATIONS;
   private stories: Story[] = INITIAL_STORIES;
   private bookings: Booking[] = INITIAL_BOOKINGS;
   private users: User[] = INITIAL_USERS;
 
-  // TOURS CRUD
+  // TOURS
   getTours() { return this.tours; }
-  
-  addTour(tour: TourPackage) {
-    this.tours = [tour, ...this.tours];
-    return this.tours;
-  }
-  
-  updateTour(updatedTour: TourPackage) {
-    this.tours = this.tours.map(t => t.id === updatedTour.id ? updatedTour : t);
-    return this.tours;
-  }
+  addTour(tour: TourPackage) { this.tours = [tour, ...this.tours]; return this.tours; }
+  updateTour(updated: TourPackage) { this.tours = this.tours.map(t => t.id === updated.id ? updated : t); return this.tours; }
+  deleteTour(id: string) { this.tours = this.tours.filter(t => t.id !== id); return this.tours; }
 
-  deleteTour(id: string) {
-    this.tours = this.tours.filter(t => t.id !== id);
-    return this.tours;
-  }
-
-  // STORIES CRUD & MODERATION
-  getStories(status?: 'approved' | 'pending' | 'rejected') {
-    if (status) return this.stories.filter(s => s.status === status);
-    return this.stories;
-  }
-
-  addStory(story: Story) {
-    this.stories = [story, ...this.stories];
-    return this.stories;
-  }
-
-  updateStoryStatus(id: string, status: 'approved' | 'rejected') {
-    this.stories = this.stories.map(s => s.id === id ? { ...s, status } : s);
-    return this.stories;
-  }
+  // DESTINATIONS
+  getDestinations() { return this.destinations; }
+  addDestination(dest: Destination) { this.destinations = [dest, ...this.destinations]; return this.destinations; }
+  updateDestination(updated: Destination) { this.destinations = this.destinations.map(d => d.id === updated.id ? updated : d); return this.destinations; }
+  deleteDestination(id: string) { this.destinations = this.destinations.filter(d => d.id !== id); return this.destinations; }
 
   // BOOKINGS
   getBookings() { return this.bookings; }
-
-  createBooking(booking: Booking) {
-    this.bookings = [booking, ...this.bookings];
-    return booking;
-  }
-
   updateBookingStatus(id: string, status: 'confirmed' | 'rejected') {
     this.bookings = this.bookings.map(b => b.id === id ? { ...b, status } : b);
     return this.bookings;
   }
 
-  // USERS CRUD
-  getUsers() { return this.users; }
+  // STORIES
+  getStories() { return this.stories; }
+  updateStoryStatus(id: string, status: 'approved' | 'rejected') {
+    this.stories = this.stories.map(s => s.id === id ? { ...s, status } : s);
+    return this.stories;
+  }
 
+  // USERS
+  getUsers() { return this.users; }
   addUser(user: Partial<User>) {
     const newUser: User = {
       id: Date.now().toString(),
@@ -158,28 +114,17 @@ class DataService {
     this.users = [newUser, ...this.users];
     return this.users;
   }
-  
-  deleteUser(id: string) {
-    this.users = this.users.filter(u => u.id !== id);
-    return this.users;
-  }
-
-  updateUserRole(id: string, role: 'admin' | 'user') {
-    this.users = this.users.map(u => u.id === id ? { ...u, role } : u);
-    return this.users;
-  }
+  deleteUser(id: string) { this.users = this.users.filter(u => u.id !== id); return this.users; }
+  updateUserRole(id: string, role: 'admin' | 'user') { this.users = this.users.map(u => u.id === id ? { ...u, role } : u); return this.users; }
   
   authenticate(email: string): User | null {
-    // Simple mock auth
     const user = this.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (user) return user;
-    
-    // Auto-register if not found for demo purposes, default to USER role
     const newUser: User = {
       id: Date.now().toString(),
       name: email.split('@')[0],
       email: email,
-      role: email.includes('admin') ? 'admin' : 'user' // Backdoor for demo: use 'admin' in email to be admin
+      role: email.includes('admin') ? 'admin' : 'user'
     };
     this.users.push(newUser);
     return newUser;

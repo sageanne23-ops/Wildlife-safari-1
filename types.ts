@@ -11,14 +11,24 @@ export interface TourPackage {
   title: string;
   duration: string;
   price: string;
-  image: string;
+  image: string; // Cover image
+  gallery?: string[]; // Multiple images
   description: string;
   highlights: string[];
+  destinationId?: string;
   // Extended Details
   fullDescription?: string;
-  dailyItinerary?: { day: number; title: string; description: string }[];
-  inclusions?: string[];
-  exclusions?: string[];
+  dailyItinerary: { day: number; title: string; description: string }[];
+  inclusions: string[];
+  exclusions: string[];
+}
+
+export interface Destination {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  packageCount: number;
 }
 
 export interface Booking {
