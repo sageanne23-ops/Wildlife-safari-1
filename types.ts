@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -108,6 +109,7 @@ export interface Story {
   role: string;
   authorImage: string;
   coverImage: string;
+  gallery?: string[];
   excerpt: string;
   content: string[]; 
   date: string;

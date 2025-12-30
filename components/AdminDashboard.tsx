@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { db } from '../services/dataService';
 import { TourPackage, Booking, Story, User, Destination, ContactMessage, NewsletterSignup, SiteSettings } from '../types';
 import { 
@@ -11,7 +11,7 @@ import {
   Inbox, UserPlus, Home, Save, Globe, Key, LogOut, Download,
   TrendingDown, BarChart3, Activity, ChevronDown, Filter,
   Layers, Share2, Printer, MessageCircle, GripVertical, AlertCircle,
-  Image as ImageIcon, Camera
+  Image as ImageIcon, Camera, Trash
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -19,10 +19,20 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
+interface AdminNotification {
+  id: string;
+  type: 'booking' | 'message' | 'story';
+  title: string;
+  subtitle: string;
+  time: string;
+  targetTab: 'bookings' | 'messages' | 'stories';
+}
+
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogout }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'packages' | 'destinations' | 'bookings' | 'stories' | 'users' | 'messages' | 'newsletters' | 'settings' | 'profile'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
   
   // State pulled from DataService (Mock Backend)
   const [tours, setTours] = useState<TourPackage[]>(db.getTours());
@@ -49,6 +59,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
     newPassword: '',
     avatar: 'https://ui-avatars.com/api/?name=CW&background=194932&color=fff'
   });
+
+  // --- DERIVED NOTIFICATIONS ---
+  const adminNotifications = useMemo((): AdminNotification[] => {
+    const alerts: AdminNotification[] = [];
+    
+    // Add pending bookings
+    bookings.filter(b => b.status === 'pending').forEach(b => {
+      alerts.push({
+        id: `b-${b.id}`,
+        type: 'booking',
+        title: 'New Booking Request',
+        subtitle: `${b.userName} requested ${b.tourTitle}`,
+        time: 'Just now',
+        targetTab: 'bookings'
+      });
+    });
+
+    // Add unread messages
+    messages.filter(m => m.status === 'unread').forEach(m => {
+      alerts.push({
+        id: `m-${m.id}`,
+        type: 'message',
+        title: 'New Message',
+        subtitle: `From ${m.name}: ${m.subject}`,
+        time: 'Today',
+        targetTab: 'messages'
+      });
+    });
+
+    // Add pending stories
+    stories.filter(s => s.status === 'pending').forEach(s => {
+      alerts.push({
+        id: `s-${s.id}`,
+        type: 'story',
+        title: 'Story Awaiting Review',
+        subtitle: `"${s.title}" by ${s.author}`,
+        time: 'Pending',
+        targetTab: 'stories'
+      });
+    });
+
+    return alerts.slice(0, 5); // Only show latest 5
+  }, [bookings, messages, stories]);
 
   // --- UTILS ---
 
@@ -95,11 +148,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
       highlights: editingTour.highlights || [],
       dailyItinerary: editingTour.dailyItinerary || [],
       inclusions: editingTour.inclusions || [],
-      exclusions: editingTour.exclusions || [],
-      image: editingTour.image || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?q=80&w=2071&auto=format&fit=crop',
-      description: editingTour.description || '',
+      exclusions: editingTour.exclusions || []
     } as TourPackage;
-    
     editingTour.id ? setTours(db.updateTour(tour)) : setTours(db.addTour(tour));
     setIsPackageEditorOpen(false);
   };
@@ -112,7 +162,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
       packageCount: editingDestination.packageCount || 0,
       image: editingDestination.image || 'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2068&auto=format&fit=crop',
     } as Destination;
-    
     editingDestination.id ? setDestinations(db.updateDestination(dest)) : setDestinations(db.addDestination(dest));
     setIsDestinationEditorOpen(false);
   };
@@ -136,6 +185,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     setSiteSettings(db.updateSettings(siteSettings));
+    alert('Settings saved successfully.');
   };
 
   // --- SUB-COMPONENTS ---
@@ -410,7 +460,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
            <div><h2 className="text-lg font-serif font-bold leading-none text-white">SafariAdmin</h2><p className="text-[10px] text-safari-400 uppercase tracking-widest mt-1">Management Suite</p></div>
         </div>
         <nav className="flex-1 p-6 space-y-1 overflow-y-auto">
-          <SidebarLink icon={LayoutDashboard} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview'} />
+          <SidebarLink icon={LayoutDashboard} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <SidebarLink icon={Map} label="Safari Packages" active={activeTab === 'packages'} onClick={() => setActiveTab('packages')} />
           <SidebarLink icon={Navigation} label="Destinations" active={activeTab === 'destinations'} onClick={() => setActiveTab('destinations')} />
           <SidebarLink icon={CalendarCheck} label="Bookings" active={activeTab === 'bookings'} onClick={() => setActiveTab('bookings')} count={bookings.filter(b => b.status === 'pending').length} />
@@ -429,13 +479,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
       </aside>
 
       {/* Main Content */}
-      <main className="ml-72 flex-1 min-h-screen">
-        <header className="bg-white border-b border-stone-200 sticky top-0 z-10 px-10 py-4 flex justify-between items-center shadow-sm">
+      <main className="ml-72 flex-1 min-h-screen flex flex-col">
+        {/* HEADER */}
+        <header className="bg-white border-b border-stone-200 sticky top-0 z-50 px-10 py-4 flex justify-between items-center shadow-sm">
           <div className="relative w-96">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
              <input type="text" placeholder={`Search in ${activeTab}...`} className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-100 rounded-xl focus:ring-2 focus:ring-safari-500 outline-none text-sm transition-all" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <div className="flex items-center gap-6">
+             {/* Global Export */}
              <div className="relative">
                <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="flex items-center gap-2 px-4 py-2 bg-safari-50 text-safari-700 rounded-xl text-xs font-bold hover:bg-safari-100 transition-all border border-safari-100"><Download size={16} /> Export Data <ChevronDown size={14} className={`transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} /></button>
                {isExportMenuOpen && (
@@ -445,7 +497,63 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
                  </div>
                )}
              </div>
-             <button className="text-stone-400 hover:text-safari-600 transition-colors relative"><Bell size={20} /><span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span></button>
+
+             {/* NOTIFICATIONS SYSTEM */}
+             <div className="relative">
+               <button 
+                onClick={() => setIsNotificationMenuOpen(!isNotificationMenuOpen)}
+                className={`transition-colors relative p-2 rounded-xl ${isNotificationMenuOpen ? 'bg-safari-100 text-safari-600' : 'text-stone-400 hover:text-safari-600'}`}
+               >
+                 <Bell size={20} />
+                 {adminNotifications.length > 0 && (
+                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                 )}
+               </button>
+
+               {isNotificationMenuOpen && (
+                 <>
+                   <div className="fixed inset-0 z-40" onClick={() => setIsNotificationMenuOpen(false)}></div>
+                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-stone-100 py-2 z-50 animate-fade-in-up">
+                      <div className="px-4 py-2 border-b border-stone-50 flex justify-between items-center">
+                        <h4 className="text-xs font-black uppercase text-stone-400 tracking-widest">Recent Activity</h4>
+                        {adminNotifications.length > 0 && <span className="text-[10px] font-bold text-safari-600">{adminNotifications.length} New</span>}
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {adminNotifications.length > 0 ? adminNotifications.map(notif => (
+                          <button 
+                            key={notif.id}
+                            onClick={() => { setActiveTab(notif.targetTab); setIsNotificationMenuOpen(false); }}
+                            className="w-full text-left px-4 py-4 hover:bg-stone-50 flex gap-3 transition-colors group"
+                          >
+                             <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notif.type === 'booking' ? 'bg-blue-50 text-blue-600' : notif.type === 'message' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                                {notif.type === 'booking' ? <CalendarCheck size={18}/> : notif.type === 'message' ? <MessageSquare size={18}/> : <BookOpen size={18}/>}
+                             </div>
+                             <div className="min-w-0">
+                                <p className="text-xs font-bold text-safari-900 group-hover:text-safari-600 transition-colors">{notif.title}</p>
+                                <p className="text-[10px] text-stone-500 line-clamp-1">{notif.subtitle}</p>
+                                <p className="text-[9px] text-stone-300 mt-1 font-bold uppercase">{notif.time}</p>
+                             </div>
+                          </button>
+                        )) : (
+                          <div className="p-10 text-center text-stone-400">
+                             <Check className="mx-auto mb-2 text-stone-200" size={32} />
+                             <p className="text-xs font-medium">All caught up!</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-4 py-2 border-t border-stone-50 mt-1">
+                        <button 
+                          onClick={() => { setActiveTab('bookings'); setIsNotificationMenuOpen(false); }}
+                          className="w-full py-2 text-[10px] font-black uppercase text-stone-400 hover:text-safari-600 text-center tracking-widest transition-colors"
+                        >
+                          View All Activities
+                        </button>
+                      </div>
+                   </div>
+                 </>
+               )}
+             </div>
+
              <button onClick={() => setActiveTab('settings')} className="text-stone-400 hover:text-safari-600 transition-colors hover:rotate-90 transition-transform"><Settings size={20} /></button>
              <div className="h-6 w-px bg-stone-200"></div>
              <button onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-xl bg-safari-100 flex items-center justify-center text-safari-600 font-bold overflow-hidden border border-safari-200 shadow-inner">
@@ -454,7 +562,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
           </div>
         </header>
 
-        <div className="p-10 max-w-7xl mx-auto">
+        <div className="p-10 max-w-7xl mx-auto flex-grow w-full">
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'packages' && renderPackages()}
           {activeTab === 'destinations' && renderDestinations()}
@@ -605,7 +713,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
         </div>
       </main>
 
-      {/* --- PACKAGE EDITOR MODAL OVERHAUL --- */}
+      {/* --- PACKAGE EDITOR MODAL --- */}
       {isPackageEditorOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 overflow-hidden">
           <div className="absolute inset-0 bg-safari-950/80 backdrop-blur-md" onClick={() => setIsPackageEditorOpen(false)}></div>
@@ -624,19 +732,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
 
             <form onSubmit={handleSavePackage} className="flex-1 overflow-y-auto bg-white p-10">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-                
-                {/* Column 1: Basic Stats & General Info */}
                 <div className="space-y-10">
                   <div className="space-y-6">
                     <h4 className="text-lg font-bold text-safari-900 flex items-center gap-2 border-b border-stone-100 pb-2"><Activity size={18} className="text-safari-500"/> Core Metrics</h4>
-                    
-                    {/* Professional Image Picker for Package Cover */}
-                    <ImagePicker 
-                      label="Safari Cover Image"
-                      value={editingTour.image}
-                      onChange={(base64) => setEditingTour({...editingTour, image: base64})}
-                    />
-
+                    <ImagePicker label="Safari Cover Image" value={editingTour.image} onChange={(base64) => setEditingTour({...editingTour, image: base64})} />
                     <InputField label="Safari Title" value={editingTour.title} onChange={(v:string)=>setEditingTour({...editingTour, title: v})} required placeholder="e.g. 5-Day Primates & Peaks" />
                     <div className="grid grid-cols-2 gap-4">
                       <InputField label="Duration" value={editingTour.duration} onChange={(v:string)=>setEditingTour({...editingTour, duration: v})} required placeholder="e.g. 5 Days" />
@@ -644,36 +743,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest block">Short Teaser</label>
-                      <textarea 
-                        value={editingTour.description || ''} 
-                        onChange={(e)=>setEditingTour({...editingTour, description: e.target.value})}
-                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:ring-2 focus:ring-safari-500 outline-none h-24 resize-none"
-                        placeholder="Brief summary for catalog cards..."
-                      />
+                      <textarea value={editingTour.description || ''} onChange={(e)=>setEditingTour({...editingTour, description: e.target.value})} className="w-full p-3 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:ring-2 focus:ring-safari-500 outline-none h-24 resize-none" placeholder="Brief summary for catalog cards..." />
                     </div>
                   </div>
-
-                  <DynamicList 
-                    label="Safari Highlights" 
-                    items={editingTour.highlights} 
-                    onAdd={(v:string) => setEditingTour({...editingTour, highlights: [...(editingTour.highlights || []), v]})}
-                    onRemove={(idx:number) => setEditingTour({...editingTour, highlights: editingTour.highlights?.filter((_, i) => i !== idx)})}
-                  />
+                  <DynamicList label="Safari Highlights" items={editingTour.highlights} onAdd={(v:string) => setEditingTour({...editingTour, highlights: [...(editingTour.highlights || []), v]})} onRemove={(idx:number) => setEditingTour({...editingTour, highlights: editingTour.highlights?.filter((_, i) => i !== idx)})} />
                 </div>
 
-                {/* Column 2: The Itinerary Builder */}
                 <div className="lg:col-span-1 space-y-6">
                   <div className="flex justify-between items-center border-b border-stone-100 pb-2">
                     <h4 className="text-lg font-bold text-safari-900 flex items-center gap-2"><ListOrdered size={18} className="text-safari-500"/> Daily Itinerary</h4>
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingTour({...editingTour, dailyItinerary: [...(editingTour.dailyItinerary || []), { day: (editingTour.dailyItinerary?.length || 0) + 1, title: '', description: '' }]})}
-                      className="text-[10px] font-black uppercase text-safari-600 hover:underline flex items-center gap-1"
-                    >
-                      <Plus size={12}/> Add Day
-                    </button>
+                    <button type="button" onClick={() => setEditingTour({...editingTour, dailyItinerary: [...(editingTour.dailyItinerary || []), { day: (editingTour.dailyItinerary?.length || 0) + 1, title: '', description: '' }]})} className="text-[10px] font-black uppercase text-safari-600 hover:underline flex items-center gap-1"><Plus size={12}/> Add Day</button>
                   </div>
-                  
                   <div className="space-y-6 max-h-[500px] overflow-y-auto pr-4 scroll-smooth">
                     {editingTour.dailyItinerary?.map((day, idx) => (
                       <div key={idx} className="bg-stone-50 p-5 rounded-3xl border border-stone-100 relative group animate-fade-in">
@@ -682,68 +762,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
                            <button type="button" onClick={() => setEditingTour({...editingTour, dailyItinerary: editingTour.dailyItinerary?.filter((_, i) => i !== idx).map((d, i) => ({...d, day: i+1}))})} className="text-stone-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16}/></button>
                         </div>
                         <div className="space-y-3">
-                          <input 
-                            type="text" 
-                            value={day.title} 
-                            onChange={(e) => {
-                               const newItin = [...(editingTour.dailyItinerary || [])];
-                               newItin[idx].title = e.target.value;
-                               setEditingTour({...editingTour, dailyItinerary: newItin});
-                            }}
-                            className="w-full bg-transparent border-b border-stone-200 p-1 text-sm font-bold text-safari-900 outline-none focus:border-safari-500 transition-colors" 
-                            placeholder="Day Title (e.g. Arrival & Briefing)" 
-                          />
-                          <textarea 
-                            value={day.description} 
-                            onChange={(e) => {
-                               const newItin = [...(editingTour.dailyItinerary || [])];
-                               newItin[idx].description = e.target.value;
-                               setEditingTour({...editingTour, dailyItinerary: newItin});
-                            }}
-                            className="w-full bg-transparent text-xs text-stone-500 outline-none resize-none h-16" 
-                            placeholder="Describe the day's activities..." 
-                          />
+                          <input type="text" value={day.title} onChange={(e) => { const newItin = [...(editingTour.dailyItinerary || [])]; newItin[idx].title = e.target.value; setEditingTour({...editingTour, dailyItinerary: newItin}); }} className="w-full bg-transparent border-b border-stone-200 p-1 text-sm font-bold text-safari-900 outline-none focus:border-safari-500 transition-colors" placeholder="Day Title" />
+                          <textarea value={day.description} onChange={(e) => { const newItin = [...(editingTour.dailyItinerary || [])]; newItin[idx].description = e.target.value; setEditingTour({...editingTour, dailyItinerary: newItin}); }} className="w-full bg-transparent text-xs text-stone-500 outline-none resize-none h-16" placeholder="Activities..." />
                         </div>
                       </div>
                     ))}
-                    {(!editingTour.dailyItinerary || editingTour.dailyItinerary.length === 0) && (
-                       <div className="text-center py-10 border-2 border-dashed border-stone-100 rounded-3xl">
-                          <CalendarCheck className="mx-auto text-stone-200 mb-2" size={32}/>
-                          <p className="text-xs text-stone-400 font-bold uppercase tracking-widest">No days added yet</p>
-                       </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Column 3: Logistics & Legal */}
                 <div className="space-y-10">
                   <div className="space-y-8">
-                    <DynamicList 
-                      label="What's Included" 
-                      items={editingTour.inclusions} 
-                      onAdd={(v:string) => setEditingTour({...editingTour, inclusions: [...(editingTour.inclusions || []), v]})}
-                      onRemove={(idx:number) => setEditingTour({...editingTour, inclusions: editingTour.inclusions?.filter((_, i) => i !== idx)})}
-                    />
-                    <DynamicList 
-                      label="What's Excluded" 
-                      items={editingTour.exclusions} 
-                      onAdd={(v:string) => setEditingTour({...editingTour, exclusions: [...(editingTour.exclusions || []), v]})}
-                      onRemove={(idx:number) => setEditingTour({...editingTour, exclusions: editingTour.exclusions?.filter((_, i) => i !== idx)})}
-                    />
-                  </div>
-                  
-                  <div className="p-6 bg-safari-50 rounded-3xl border border-safari-100">
-                    <h5 className="text-[10px] font-black uppercase text-safari-700 tracking-widest flex items-center gap-2 mb-3"><AlertCircle size={14}/> Designer Note</h5>
-                    <p className="text-[10px] text-safari-900 leading-relaxed font-medium">Be specific with inclusions to increase conversion. Travelers value transparency in pricing, especially for permits and internal transfers.</p>
+                    <DynamicList label="What's Included" items={editingTour.inclusions} onAdd={(v:string) => setEditingTour({...editingTour, inclusions: [...(editingTour.inclusions || []), v]})} onRemove={(idx:number) => setEditingTour({...editingTour, inclusions: editingTour.inclusions?.filter((_, i) => i !== idx)})} />
+                    <DynamicList label="What's Excluded" items={editingTour.exclusions} onAdd={(v:string) => setEditingTour({...editingTour, exclusions: [...(editingTour.exclusions || []), v]})} onRemove={(idx:number) => setEditingTour({...editingTour, exclusions: editingTour.exclusions?.filter((_, i) => i !== idx)})} />
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-end gap-4 mt-16 pt-10 border-t border-stone-100 sticky bottom-0 bg-white">
                 <button type="button" onClick={() => setIsPackageEditorOpen(false)} className="px-8 py-3 rounded-2xl font-bold text-stone-400 hover:bg-stone-50 transition-colors">Discard Changes</button>
-                <button type="submit" className="bg-safari-600 text-white px-12 py-4 rounded-2xl font-bold shadow-xl shadow-safari-200/50 hover:bg-safari-700 hover:scale-105 transition-all flex items-center gap-2 uppercase tracking-widest text-sm">
-                   <Save size={18} /> Finalize Safari
-                </button>
+                <button type="submit" className="bg-safari-600 text-white px-12 py-4 rounded-2xl font-bold shadow-xl shadow-safari-200/50 hover:bg-safari-700 hover:scale-105 transition-all flex items-center gap-2 uppercase tracking-widest text-sm"><Save size={18} /> Finalize Safari</button>
               </div>
             </form>
           </div>
@@ -765,52 +802,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome, onLogou
                </div>
                <button onClick={() => setIsDestinationEditorOpen(false)} className="text-stone-400 hover:text-stone-600 p-2"><X size={28}/></button>
             </div>
-            
             <form onSubmit={handleSaveDestination} className="flex-1 overflow-y-auto p-10 space-y-12">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <InputField label="Destination Name" value={editingDestination.name} onChange={(v:string)=>setEditingDestination({...editingDestination, name: v})} required placeholder="e.g. Volcanoes National Park" />
-                    
-                    {/* Professional Image Picker for Destination */}
-                    <ImagePicker 
-                      label="Destination Background Image"
-                      value={editingDestination.image}
-                      onChange={(base64) => setEditingDestination({...editingDestination, image: base64})}
-                    />
-
+                    <ImagePicker label="Destination Background Image" value={editingDestination.image} onChange={(base64) => setEditingDestination({...editingDestination, image: base64})} />
                     <InputField label="Starting Price Label" value={editingDestination.price} onChange={(v:string)=>setEditingDestination({...editingDestination, price: v})} placeholder="e.g. $800" />
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest block">Detailed Description</label>
-                      <textarea 
-                        value={editingDestination.description || ''} 
-                        onChange={(e)=>setEditingDestination({...editingDestination, description: e.target.value})}
-                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:ring-2 focus:ring-safari-500 outline-none h-32 resize-none"
-                      />
+                      <textarea value={editingDestination.description || ''} onChange={(e)=>setEditingDestination({...editingDestination, description: e.target.value})} className="w-full p-3 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:ring-2 focus:ring-safari-500 outline-none h-32 resize-none" />
                     </div>
                   </div>
-                  
                   <div className="space-y-10">
-                    <DynamicList 
-                      label="Key Highlights" 
-                      items={editingDestination.highlights} 
-                      onAdd={(v:string) => setEditingDestination({...editingDestination, highlights: [...(editingDestination.highlights || []), v]})}
-                      onRemove={(idx:number) => setEditingDestination({...editingDestination, highlights: editingDestination.highlights?.filter((_, i) => i !== idx)})}
-                    />
-                    
-                    <div className="h-64 rounded-3xl overflow-hidden border-4 border-stone-100 shadow-inner relative group">
-                       <img src={editingDestination.image || 'https://images.unsplash.com/photo-1544258788-b7f73c4f74d0'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Preview" />
-                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white font-bold text-xs uppercase tracking-widest">Live Preview</span>
-                       </div>
-                    </div>
+                    <DynamicList label="Key Highlights" items={editingDestination.highlights} onAdd={(v:string) => setEditingDestination({...editingDestination, highlights: [...(editingDestination.highlights || []), v]})} onRemove={(idx:number) => setEditingDestination({...editingDestination, highlights: editingDestination.highlights?.filter((_, i) => i !== idx)})} />
                   </div>
                </div>
-               
                <div className="flex justify-end gap-4 pt-10 border-t border-stone-100">
                   <button type="button" onClick={() => setIsDestinationEditorOpen(false)} className="px-8 py-3 rounded-2xl font-bold text-stone-400 hover:bg-stone-50">Discard</button>
-                  <button type="submit" className="bg-safari-600 text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-safari-200/50 hover:bg-safari-700 transition-all flex items-center gap-2">
-                     <Save size={18} /> Save Destination
-                  </button>
+                  <button type="submit" className="bg-safari-600 text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-safari-200/50 hover:bg-safari-700 transition-all flex items-center gap-2"><Save size={18} /> Save Destination</button>
                </div>
             </form>
           </div>
@@ -825,14 +834,7 @@ const InputField = ({ label, value, onChange, required, placeholder, type = "tex
     <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest block">{label}</label>
     <div className="relative">
       {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300" size={16} />}
-      <input 
-        type={type} 
-        className={`w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-safari-500 outline-none text-sm transition-all ${Icon ? 'pl-10' : ''}`} 
-        value={value || ''} 
-        onChange={e => onChange && onChange(e.target.value)} 
-        required={required} 
-        placeholder={placeholder} 
-      />
+      <input type={type} className={`w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-safari-500 outline-none text-sm transition-all ${Icon ? 'pl-10' : ''}`} value={value || ''} onChange={e => onChange && onChange(e.target.value)} required={required} placeholder={placeholder} />
     </div>
   </div>
 );
