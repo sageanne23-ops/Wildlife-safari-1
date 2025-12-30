@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
@@ -52,10 +53,6 @@ function App() {
     const loggedInUser = db.authenticate(userData.email);
     if (loggedInUser) {
       setUser(loggedInUser);
-      // Auto-redirect to admin if admin
-      if (loggedInUser.role === 'admin') {
-         // Optional: alert('Welcome Admin');
-      }
     }
   };
 
@@ -71,7 +68,7 @@ function App() {
       setCurrentPage('HOME'); // Protection
       return null; 
     }
-    return <AdminDashboard onNavigateHome={() => setCurrentPage('HOME')} />;
+    return <AdminDashboard onNavigateHome={() => setCurrentPage('HOME')} onLogout={handleLogout} />;
   }
 
   const renderPage = () => {
@@ -99,9 +96,6 @@ function App() {
       case 'GALLERY':
         return <Gallery />;
       case 'STORIES':
-        // Pass stories from DB logic if we were fully converting Stories.tsx, 
-        // for now Stories.tsx has internal state but Admin manages a global list in DataService.
-        // In a full refactor, Stories.tsx would accept `stories` prop.
         return <Stories />;
       case 'CONTACT':
         return <Contact />;

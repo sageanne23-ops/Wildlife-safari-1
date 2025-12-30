@@ -1,9 +1,9 @@
-import { TourPackage, Story, Booking, User, Destination } from '../types';
+import { TourPackage, Story, Booking, User, Destination, ContactMessage, NewsletterSignup, SiteSettings } from '../types';
 
 const INITIAL_DESTINATIONS: Destination[] = [
-  { id: 'd1', name: 'Volcanoes National Park', image: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d', description: 'Home of the Mountain Gorillas.', packageCount: 1 },
-  { id: 'd2', name: 'Akagera National Park', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801', description: 'Savannah and the Big Five.', packageCount: 1 },
-  { id: 'd3', name: 'Nyungwe Forest', image: 'https://images.unsplash.com/photo-1440557653066-54157b856dc6', description: 'Ancient rainforest and primates.', packageCount: 1 }
+  { id: 'd1', name: 'Volcanoes National Park', image: 'https://images.unsplash.com/photo-1576487248873-1f3020907c8d', description: 'Home of the Mountain Gorillas.', packageCount: 5, price: '$800', highlights: ['Gorilla Trekking', 'Golden Monkeys'] },
+  { id: 'd2', name: 'Akagera National Park', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801', description: 'Savannah and the Big Five.', packageCount: 3, price: '$600', highlights: ['Big Five', 'Boat Safari'] },
+  { id: 'd3', name: 'Nyungwe Forest', image: 'https://images.unsplash.com/photo-1440557653066-54157b856dc6', description: 'Ancient rainforest and primates.', packageCount: 2, price: '$500', highlights: ['Canopy Walk', 'Chimpanzees'] }
 ];
 
 const INITIAL_TOURS: TourPackage[] = [
@@ -18,19 +18,48 @@ const INITIAL_TOURS: TourPackage[] = [
       'https://images.unsplash.com/photo-1626270726888-2d8540a83856'
     ],
     description: 'A once-in-a-lifetime encounter with the majestic mountain gorillas.',
-    fullDescription: 'Experience the thrill of a lifetime as you trek into the dense rainforests.',
+    fullDescription: 'Experience the thrill of a lifetime as you trek into the dense rainforests of Rwanda\'s Volcanoes National Park.',
     highlights: ['Gorilla Trekking', 'Golden Monkeys', 'Cultural Visit'],
     destinationId: 'd1',
     dailyItinerary: [
-      { day: 1, title: 'Arrival in Kigali', description: 'Transfer to Musanze and check-in at your lodge.' },
-      { day: 2, title: 'Gorilla Trekking Day', description: 'Early morning briefing followed by a guided trek to find the gorillas.' },
-      { day: 3, title: 'Cultural Experience', description: 'Visit a local village before transferring back to Kigali.' }
+      { day: 1, title: 'Arrival in Kigali', description: 'Transfer to Musanze and check-in at your lodge.', accommodation: 'The Bishop\'s House', meals: 'D' },
+      { day: 2, title: 'Gorilla Trekking Day', description: 'Early morning briefing followed by a guided trek to find the gorillas.', accommodation: 'The Bishop\'s House', meals: 'B, L, D' },
+      { day: 3, title: 'Cultural Experience', description: 'Visit a local village before transferring back to Kigali.', meals: 'B, L' }
     ],
-    inclusions: ['Gorilla Permit', 'Private Vehicle', 'Expert Guide'],
-    exclusions: ['International Flights', 'Tips']
-  },
-  // ... more tours
+    inclusions: ['Gorilla Permit', 'Private Vehicle', 'Expert Guide', 'Accommodation', 'All Meals'],
+    exclusions: ['International Flights', 'Tips', 'Personal Expenses']
+  }
 ];
+
+const INITIAL_MESSAGES: ContactMessage[] = [
+  {
+    id: 'msg1',
+    name: 'Robert Fox',
+    email: 'robert@example.com',
+    subject: 'Group Safari Inquiry',
+    message: 'We are looking for a customized 10-day safari for a group of 15 people in September. Do you offer bulk discounts?',
+    status: 'unread',
+    createdAt: new Date().toISOString()
+  }
+];
+
+const INITIAL_NEWSLETTERS: NewsletterSignup[] = [
+  { id: 'nl1', email: 'traveler1@gmail.com', createdAt: new Date().toISOString() }
+];
+
+const INITIAL_SETTINGS: SiteSettings = {
+  siteName: 'Wildlife Safari Rwanda',
+  contactEmail: 'hello@wildlifesafari.rw',
+  contactPhone: '+250 788 123 456',
+  address: 'KG 54 Avenue, Kigali Heights, Kigali, Rwanda',
+  socialLinks: {
+    instagram: 'https://instagram.com/wildlifesafari',
+    facebook: 'https://facebook.com/wildlifesafari',
+    twitter: 'https://twitter.com/wildlifesafari',
+    whatsapp: 'https://wa.me/250788123456'
+  },
+  maintenanceMode: false
+};
 
 const INITIAL_STORIES: Story[] = [
   {
@@ -64,7 +93,7 @@ const INITIAL_BOOKINGS: Booking[] = [
 ];
 
 const INITIAL_USERS: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@wildlifesafari.rw', role: 'admin' },
+  { id: '1', name: 'Chief Warden', email: 'admin@wildlifesafari.rw', role: 'admin', avatar: 'https://ui-avatars.com/api/?name=CW&background=194932&color=fff' },
   { id: '2', name: 'John Traveler', email: 'john@example.com', role: 'user' }
 ];
 
@@ -74,6 +103,9 @@ class DataService {
   private stories: Story[] = INITIAL_STORIES;
   private bookings: Booking[] = INITIAL_BOOKINGS;
   private users: User[] = INITIAL_USERS;
+  private messages: ContactMessage[] = INITIAL_MESSAGES;
+  private newsletters: NewsletterSignup[] = INITIAL_NEWSLETTERS;
+  private settings: SiteSettings = INITIAL_SETTINGS;
 
   // TOURS
   getTours() { return this.tours; }
@@ -92,6 +124,48 @@ class DataService {
   updateBookingStatus(id: string, status: 'confirmed' | 'rejected') {
     this.bookings = this.bookings.map(b => b.id === id ? { ...b, status } : b);
     return this.bookings;
+  }
+
+  // MESSAGES
+  getMessages() { return this.messages; }
+  addMessage(msg: Partial<ContactMessage>) {
+    const newMsg: ContactMessage = {
+      id: 'msg' + Date.now(),
+      name: msg.name || 'Anonymous',
+      email: msg.email || '',
+      subject: msg.subject || 'New Message',
+      message: msg.message || '',
+      status: 'unread',
+      createdAt: new Date().toISOString()
+    };
+    this.messages = [newMsg, ...this.messages];
+    return this.messages;
+  }
+  updateMessageStatus(id: string, status: 'unread' | 'read' | 'replied') {
+    this.messages = this.messages.map(m => m.id === id ? { ...m, status } : m);
+    return this.messages;
+  }
+  deleteMessage(id: string) { this.messages = this.messages.filter(m => m.id !== id); return this.messages; }
+
+  // NEWSLETTERS
+  getNewsletters() { return this.newsletters; }
+  addNewsletter(email: string) {
+    if (this.newsletters.find(n => n.email === email)) return this.newsletters;
+    const newSignup: NewsletterSignup = {
+      id: 'nl' + Date.now(),
+      email: email,
+      createdAt: new Date().toISOString()
+    };
+    this.newsletters = [newSignup, ...this.newsletters];
+    return this.newsletters;
+  }
+  deleteNewsletter(id: string) { this.newsletters = this.newsletters.filter(n => n.id !== id); return this.newsletters; }
+
+  // SETTINGS
+  getSettings() { return this.settings; }
+  updateSettings(newSettings: SiteSettings) {
+    this.settings = newSettings;
+    return this.settings;
   }
 
   // STORIES

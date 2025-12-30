@@ -1,6 +1,7 @@
-import React from 'react';
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, MessageCircle, Check } from 'lucide-react';
 import { PageView } from '../types';
+import { db } from '../services/dataService';
 
 interface FooterProps {
   onNavigate: (page: PageView) => void;
@@ -9,6 +10,9 @@ interface FooterProps {
 const LOGO_URL = "https://ui-avatars.com/api/?name=WS&background=34ae6f&color=fff&size=128&rounded=true&bold=true";
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
   const handleLinkClick = (e: React.MouseEvent, page: PageView) => {
     e.preventDefault();
     onNavigate(page);
@@ -18,6 +22,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.preventDefault();
     window.open('https://wa.me/250788123456', '_blank');
+  };
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    db.addNewsletter(email);
+    setIsSubscribed(true);
+    setEmail('');
+    setTimeout(() => setIsSubscribed(false), 5000);
   };
 
   return (
@@ -89,16 +102,26 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white font-serif">Newsletter</h4>
             <p className="text-gray-400 mb-4 text-sm">Subscribe to get special offers and travel inspiration.</p>
-            <div className="flex flex-col space-y-3">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                className="bg-white/5 border border-white/10 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-safari-500 focus:bg-white/10 transition-colors text-sm"
-              />
-              <button className="bg-safari-600 hover:bg-safari-500 text-white px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide">
-                Subscribe
-              </button>
-            </div>
+            {!isSubscribed ? (
+              <form className="flex flex-col space-y-3" onSubmit={handleSubscribe}>
+                <input 
+                  type="email" 
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address" 
+                  className="bg-white/5 border border-white/10 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-safari-500 focus:bg-white/10 transition-colors text-sm"
+                />
+                <button type="submit" className="bg-safari-600 hover:bg-safari-500 text-white px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide">
+                  Subscribe
+                </button>
+              </form>
+            ) : (
+              <div className="bg-safari-900/50 border border-safari-500/30 p-4 rounded-lg flex items-center gap-3 animate-fade-in">
+                <Check className="text-safari-500" size={20} />
+                <span className="text-sm text-safari-200">Thanks for subscribing!</span>
+              </div>
+            )}
           </div>
         </div>
 

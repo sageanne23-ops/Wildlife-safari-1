@@ -18,7 +18,13 @@ export interface TourPackage {
   destinationId?: string;
   // Extended Details
   fullDescription?: string;
-  dailyItinerary: { day: number; title: string; description: string }[];
+  dailyItinerary: { 
+    day: number; 
+    title: string; 
+    description: string;
+    accommodation?: string;
+    meals?: string;
+  }[];
   inclusions: string[];
   exclusions: string[];
 }
@@ -29,6 +35,9 @@ export interface Destination {
   image: string;
   description: string;
   packageCount: number;
+  // New fields added for specific destination offers
+  price?: string;
+  highlights?: string[];
 }
 
 export interface Booking {
@@ -42,6 +51,36 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'rejected';
   totalPrice?: string;
   createdAt: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'unread' | 'read' | 'replied';
+  createdAt: string;
+}
+
+export interface NewsletterSignup {
+  id: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface SiteSettings {
+  siteName: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  socialLinks: {
+    instagram: string;
+    facebook: string;
+    twitter: string;
+    whatsapp: string;
+  };
+  maintenanceMode: boolean;
 }
 
 export interface PlannerState {

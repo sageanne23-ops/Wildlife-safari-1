@@ -1,10 +1,31 @@
-import React from 'react';
-import { Mail, Phone, MapPin, Send, MessageCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Send, MessageCircle, CheckCircle } from 'lucide-react';
 import PageHeader from './PageHeader';
+import { db } from '../services/dataService';
 
 const Contact: React.FC = () => {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: ''
+  });
+
   const handleWhatsAppClick = () => {
     window.open(`https://wa.me/250788123456?text=${encodeURIComponent("Hello! I'm interested in booking a trip with Wildlife Safaris.")}`, '_blank');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    db.addMessage({
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      subject: 'Website Inquiry',
+      message: formData.message
+    });
+    setIsSubmitted(true);
+    setFormData({ firstName: '', lastName: '', email: '', message: '' });
   };
 
   return (
@@ -72,38 +93,86 @@ const Contact: React.FC = () => {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-stone-50 p-8 rounded-3xl shadow-lg border border-safari-100">
-            <h4 className="text-2xl font-serif font-bold text-safari-900 mb-6">Send us a message</h4>
-            <form className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-stone-700">First Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" placeholder="John" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-stone-700">Last Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" placeholder="Doe" />
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-stone-700">Email Address</label>
-                <input type="email" className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" placeholder="john@example.com" />
-              </div>
+          <div className="bg-stone-50 p-8 rounded-3xl shadow-lg border border-safari-100 min-h-[500px] flex flex-col justify-center">
+            {!isSubmitted ? (
+              <>
+                <h4 className="text-2xl font-serif font-bold text-safari-900 mb-6">Send us a message</h4>
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-stone-700">First Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" 
+                        placeholder="John" 
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-stone-700">Last Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" 
+                        placeholder="Doe" 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-stone-700">Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" 
+                      placeholder="john@example.com" 
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-stone-700">Message</label>
-                <textarea rows={4} className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" placeholder="I'm interested in the Gorilla Trek..."></textarea>
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-stone-700">Message</label>
+                    <textarea 
+                      rows={4} 
+                      required
+                      value={formData.message}
+                      onChange={(e) => setFormData({...formData, message: e.target.value})}
+                      className="w-full px-4 py-3 rounded-lg bg-white border border-stone-200 focus:ring-2 focus:ring-safari-500 focus:border-transparent outline-none transition-all" 
+                      placeholder="I'm interested in the Gorilla Trek..."
+                    ></textarea>
+                  </div>
 
-              <button type="button" className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-safari-500/30 flex items-center justify-center gap-2">
-                Send Message <Send size={18} />
-              </button>
-              
-              <p className="text-xs text-center text-stone-400 mt-2">
-                We'll respond to your email and update your dashboard if you have an account.
-              </p>
-            </form>
+                  <button type="submit" className="w-full bg-safari-600 hover:bg-safari-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-safari-500/30 flex items-center justify-center gap-2">
+                    Send Message <Send size={18} />
+                  </button>
+                  
+                  <p className="text-xs text-center text-stone-400 mt-2">
+                    We'll respond to your email and update your dashboard if you have an account.
+                  </p>
+                </form>
+              </>
+            ) : (
+              <div className="text-center space-y-4 animate-fade-in">
+                <div className="w-20 h-20 bg-safari-100 text-safari-600 rounded-full flex items-center justify-center mx-auto">
+                   <CheckCircle size={40} />
+                </div>
+                <h4 className="text-2xl font-serif font-bold text-safari-900">Message Sent!</h4>
+                <p className="text-stone-600">
+                  Thank you for reaching out. Our team will get back to you within 24 hours.
+                </p>
+                <button 
+                  onClick={() => setIsSubmitted(false)}
+                  className="text-safari-600 font-bold hover:underline"
+                >
+                  Send another message
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

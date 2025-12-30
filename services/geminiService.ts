@@ -1,16 +1,14 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { PlannerState } from "../types";
 
-const apiKey = process.env.API_KEY || '';
+// Initialize the Gemini client directly with the pre-configured API key from environment variables
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Initialize the Gemini client
-const ai = new GoogleGenAI({ apiKey });
-
+/**
+ * Generates a travel itinerary for Rwanda using Gemini AI based on user preferences.
+ */
 export const generateItinerary = async (plannerState: PlannerState): Promise<string> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please check your configuration.");
-  }
-
   const prompt = `
     You are an expert travel agent specializing in Rwanda tourism (The Land of a Thousand Hills).
     Create a detailed, day-by-day travel itinerary for a client with the following preferences:
@@ -33,8 +31,9 @@ export const generateItinerary = async (plannerState: PlannerState): Promise<str
   `;
 
   try {
+    // Using gemini-3-flash-preview for general text generation tasks as per guidelines
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         temperature: 0.7,
@@ -43,6 +42,7 @@ export const generateItinerary = async (plannerState: PlannerState): Promise<str
       }
     });
 
+    // Extract generated text directly from the text property
     return response.text || "I couldn't generate an itinerary at this time. Please try again.";
   } catch (error) {
     console.error("Gemini API Error:", error);
